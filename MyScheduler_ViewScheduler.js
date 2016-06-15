@@ -1,130 +1,22 @@
 (function () {
-    var viewFactory = { id: "scheduler" };                                                                                       // This is the viewFactory object
-    if (!window.$SejScheduler) {
-        alert("Object not available {window.$SejScheduler}");
+    if (!window.$sej) {
+        alert("Missing [windows.$sej]");
         return;
     }
-    var $L = window.$SejScheduler.utils;                                                                                    // Plain shortcuts to factory
+    var $TH = window.$sej.theme,$L = window.$sej.utils                                                                       // Some shortcuts to CORE methods
     var $D = $L.DOM,$T = $L.dateTime;
     var $CD = $D.createDiv;
 
+    var viewFactory = { id: "scheduler" };                                                                                  // This is the viewFactory object
     viewFactory.config = {
         number_days: 2,                                                                                                     // Number of days to display
-        start: { h: 00, m: 0 },                                                                                             // Start time of ticker panel
+        start: { h: 00, m: 0 },                                                                                             // Start time of ticker panel 
         end: { h: 23, m: 59 },                                                                                              // End time of ticker panel
         interval: 60,                                                                                                       // Tick interval in minutes
-        min_tick_width: 25,                                                                                                 // Minimum tick height. If all ticks fit in available space then ticks height will expand, otherwise scroll
+        min_tick_width: 50,                                                                                                 // Minimum tick height. If all ticks fit in available space then ticks height will expand, otherwise scroll
+        overlap_OffSetY: 10,                                                                                                // Vertical displacement for an overlapping event
         themes: {}
     };
-
-    // Init themes
-    (function (c) {
-
-        c.themes["scheduler.title"] = function (view, data, element) {
-            element.style.borderTop = "1px solid #AAA";
-            element.style.borderBottom = "1px solid #AAA";
-            element.style.borderRight = "1px solid #AAA";
-            element.style.borderLeft = "1px solid #AAA";
-            element.style.marginRight = "1px";
-        }
-
-        c.themes["scheduler.header"] = function (view, data, element) {
-            element.style.borderTop = "1px solid #AAA";
-            element.style.borderRight = "1px solid #AAA";
-        }
-
-        c.themes["scheduler.event"] = function (view, data, element) {
-            element.style.border = "1px solid #333";
-            element.style.fontFamily = "Segoe UI,Arial,sans-serif";
-            element.style.fontSize = "9px";
-            element.style.overflow = "auto";
-
-            element.className = "CSSshadow ";
-            element.innerHTML = data.room + "<br>" + $T.timeToString(data.start) + "-" + $T.timeToString(data.end);
-        }
-
-
-
-        c.themes["scheduler.category"] = function (view, data, element) {
-            element.style.borderRight = "1px solid #AAA";
-            element.style.borderBottom= "1px solid #AAA";
-            element.style.borderLeft= "1px solid #AAA";
-            element.style.marginRight = "1px";
-        }
-
-        c.themes["scheduler.category.title"] = function (view, data, element) {
-            element.style.fontFamily = "Segoe UI,Arial,sans-serif";
-            element.style.paddingLeft = "6px";
-            element.style.paddingRight = "12px";
-            element.style.paddingBottom = "6px";
-            if (data.index % 2 != 0) element.style.backgroundColor = "#FAFAFA";
-            element.innerHTML = data.value +" ("+data.items.length+")";
-            element.style.borderBottom= "1px solid #AAA";
-            element.style.minWidth = "90px";
-        }
-
-
-        c.themes["scheduler.header.item"] = function (view, data, element) {
-            element.style.backgroundColor = "#EEE";
-            element.style.borderBottom = "1px solid #AAA";
-        }
-
-        c.themes["scheduler.header.day"] = function (view, data, element) {
-            element.style.fontFamily = "Segoe UI,Arial,sans-serif";
-            element.style.textAlign = "center";
-            element.style.padding= "8px";
-            element.innerHTML = $T.dateToString(data);
-            element.style.borderLeft = "1px solid #AAA";
-        }
-
-        c.themes["scheduler.header.times"] = function (view, data, element) {
-            element.style.borderTop = "1px solid #AAA";
-        }
-
-
-        c.themes["scheduler.header.tick"] = function (view, data, element) {
-            element.style.fontFamily = "Segoe UI,Arial,sans-serif";
-            element.style.textAlign = "center";
-
-            element.innerHTML = $T.timeToString(data.start).substring(0, 2);                                                                               // Each ticket has a TIME0 = starting time
-            element.style.padding = "4px";
-            element.style.borderLeft = "1px solid #AAA";
-        }
-
-        c.themes["scheduler.body"] = function (view, data, element) {
-            element.style.borderRight = "1px solid #AAA";
-            element.style.borderBottom= "1px solid #AAA";
-        }
-
-        c.themes["scheduler.body.category"] = function (view, data, element) {
-            if (data.index % 2 != 0) element.style.backgroundColor = "#FAFAFA";
-            element.style.borderBottom = "1px solid #AAA";
-        }
-
-        c.themes["scheduler.body.cell"] = function (view, data, element) {
-            element.style.borderLeft = "1px solid " + (data.index == 0 ? "#AAA" : "#EEE");
-            element.style.fontFamily = "Segoe UI,Arial,sans-serif";
-            element.style.textAlign = "center";
-
-        }
-
-    })(viewFactory.config);
-
-    function theme(view,data, what, element) {                                                                              // In view, using data, apply theme what to element
-        var f = view.config.themes[what];                                                                                   // Get theme function from view config
-        var f0 = viewFactory.config.themes[what];                                                                           // Get theme function from default config
-        if (f) {                                                                                                            // If got a current function
-            if (f0 == f) f0 = null;                                                                                         // If f==f0 then disable f0
-            var k = f(view, data, element,f0);                                                                              // Call f
-            if (k) return k; else return element;                                                                           // return result of f or element
-        }
-        if (f0) {
-            var k = f0(view, data, element);                                                                                // Call f0
-            if (k) return k; else return element;                                                                           // return result of f0 or element
-        }
-        return element;                                                                                                     // Return element
-    }
-
 
     function getTimeInfo(config, date) {
         var time_start = $T.dateAt(date, config.start.h, config.start.m);                                                   // This is starting time
@@ -135,198 +27,188 @@
         return { start: time_start, steps: steps, offsetMs: ns };
     }
 
+    function addCategory(name) {
+        if (!this.categories[name]) this.categories[name] = [];
+        InitDisplay(this);
+        ResizeView(this);                                                                                                   // And finally resize everything
+    }
+
+    function addData(data, f) {                                                                                             // sets the data        
+        var c;
+        for (var i = 0; i < data.length; i++) {                                                                             // Loop all the data
+            if (!f) c = "default";                                                                                          // Get the category this data belongs to.
+            else if (typeof f == "string") c = f;
+            else if (typeof f == "function") c = f(data[i]);
+            if (!this.categories[c]) this.categories[c] = [];
+            this.categories[c].push({ item: data[i] });                                                                     // Push a DATA wrapper (which will hold the $DIV)
+        }
+        for (var s in this.categories) $T.arrangeEvents(this.categories[s]);                                                // Loop all categories, preprocessing for display
+        InitDisplay(this);
+        ResizeView(this);                                                                                                   // And finally resize everything
+    }
+
+
+    function InitDisplay(v) {
+        v.$categories.innerHTML = "";                                                                                       // Remove categories display
+        var c = $L.p2array(v.categories, true);                                                                             // Get all categories sorted by name
+        for (var i = 0; i < c.length; i++) {                                                                                // Loop all categories
+            var cd = { index: i, value: c[i] , items: v.categories[c[i]] };                                                 // This is a category object        
+            var t = $TH(v, cd, "scheduler.category.title", $CD(v.$categories));                                             // Create a category title
+            t.style.position = "relative";                                                                                  // Make it relative, so it can be scrolled
+            var d = $TH(v, cd, "scheduler.body.category", $CD(v.$body));                                                    // Create a category view
+            for (var j = 0; j < v.tickers.length; j++) $TH(v, v.tickers[j], "scheduler.body.cell", $CD(d,"inline-block"));  // Create a DIV for the ticket
+            $D.loop(cd.items,                                                                                               // Loop all the items(which are events in the category)
+                function (k, data, index) {                                                                                 // For each ITEM
+                    k.tick1 = $L.findInTicksList(k.item.start,k,data.view.tickers,"start","end");                           // Get the START tick for this event
+                    k.earlyStart = k.early;
+                    k.lateStart = k.late;
+                    k.tick2 = $L.findInTicksList(k.item.end, k, data.view.tickers, "start", "end");                         // Get the END tick for this event
+                    k.earlyEnd = k.early;
+                    k.lateEnd= k.late;
+
+                    k.time1 = $T.timeToString(k.item.start);
+                    k.time2 = $T.timeToString(k.item.end);
+                    k.$body = $D.position($TH(data.view, k, "scheduler.event", $CD(data.where)), i * 100);                      // Create a DIV for the data wrapper
+                    k.$body.onclick = function () {
+                        console.log("CLICKED ON");
+                        console.log(k);
+
+                    }
+                }, { view: v, where: d });                                                                                  // Data used by the call back
+        }
+    }
+
+    function ResizeView(v) {
+        var topHeight = $D.setSameHeight(v.$title, v.$header);                                                              // Make sure that TITLE & HEADER have the same height
+        var leftWidth = $D.setSameWidth(v.$title, v.$categories);                                                           // Make sure that TITLE & CATEGORY have the same width
+        $D.position(v.$body, leftWidth, topHeight);                                                                         // Position BODY 
+        $D.position(v.$header, leftWidth);                                                                                  // Position HEADER        
+
+        var aw = $D.getWidthInner(v.owner) - leftWidth - $D.getNonClientWidth(v.$header);                                   // This is all the X space not available for TICK marks
+        n = v.$header.firstChild;                                                                                           // Let's go the first DAY items
+        while (n) {                                                                                                         // For each DAY item,
+            aw= aw - $D.getNonClientWidth(n) - $D.getNonClientWidth(n.firstChild.nextSibling);                              // Add to non available the NON client part of DAY item and HEADER.TIMES item
+            n = n.nextSibling;  
+        }
+        var tw = (aw / v.tickers.length);                                                                                   // This is calculated tick width
+        if (tw < v.config.min_tick_width) tw = v.config.min_tick_width;                                                     // The tick width cannot be less that the minimum
+        $D.loop(v.tickers, function (k) { $D.setWidthOuter(k.$body, tw); });                                                // Set width for ticks !!!
+        v.tickers.tickWidth = tw;                                                                                           // Store the WIDTH we are using, we will using for X positioning the EVENTS
+        
+        var c = $L.p2array(v.categories, true);                                                                             // Get all categories sorted by name
+        var hy = 0;
+        for (var i = 0; i < c.length; i++) {                                                                                 // Loop all categories
+            var bc=v.$categories.childNodes[i]
+            var l = v.categories[c[i]];                                                                                     // Get the category
+            var h = 0;                                                                                                      // Used heights !!!
+            for (var j = 0; j < l.length; j++) {                                                                            // Loop all elements in the category
+                var l0 = l[j];
+                if ((l0.earlyStart && l0.earlyEnd) || (l0.lateStart && l0.lateEnd))                                         // If the item is out of range
+                    l[j].$body.style.display = "none";                                                                      // then hide it
+                else {
+                    var x1 = GetXPosition(v, l0.tick1, l0.item.start, (l0.earlyStart ? 1:0));                               // Get posx of event start (this uses the TICKS X position)
+                    var x2 = GetXPosition(v, l0.tick2, l0.item.end, (l0.lateEnd ? 2:0)) - x1;                               // Get posx of event start (this uses the TICKS X position)
+                    $D.positionLW(l0.$body, x1, (x2 < 15 ? 15 : x2));                                                       // Set X positions !!
+                    h = GetYPosition(v, h, l0, hy);                                                                         // Set Y position and update list of heights
+                }
+            }
+            if (h == 0) h=$D.getHeightOuter(bc);                                                                            // If no height was calculated, use current
+            var bv = v.$body.childNodes[i];                                                                                 // Get the view for the finished category
+            $D.setWidthInner(bv, v.tickers.length * tw);                                                                    // Set total categoryView width
+            $D.setHeightInner(bv, h);                                                                                       // Set height for categoryView
+            $D.setSameHeight(bv, bc);                                                                                       // Set category title same height as category view
+            for (var j = 0; j < v.tickers.length; j++) $D.setSizeOuter(bv.childNodes[j], tw,h);                             // The first v.tickers.length children of BV are the CELLs background display
+            hy = hy + $D.getHeightOuter(bv);
+        }
+            
+    }
+
+    function GetYPosition(v,h,w,ofy) {
+        var posy = w.slot*v.config.overlap_OffSetY;                                                                         // This is where the slot should be placed                                                           
+        w.$body.style.top = (ofy+posy) + "px";                                                                              // Position the body   
+        posy=posy+$D.getHeightOuter(w.$body);                                                                               // Get BOTTOMY pos   
+        return (posy > h ? posy:h);                                                                                         // Return greatest of posy:h
+    }
+
+    function GetXPosition(v, tick,time,exc) {
+        if (!tick) return null;
+        var x1 = tick.$body.offsetLeft + tick.$body.parentNode.offsetLeft + tick.$body.parentNode.parentNode.offsetLeft;
+        if (exc == 1) return x1;                                                                                            // If this is early START do not bother getting an offset
+        if (exc == 2) return x1 + v.tickers.tickWidth;                                                                      // If this is early END do not bother getting an offset
+
+        var dm = time - tick.start;                                                                                         // TimeSpan between received time and tick start  
+        dm = Math.round(((dm % 86400000) % 3600000) / 60000);                                                               // Convert time span to minutes
+        var dp = Math.round(dm * v.tickers.tickWidth / v.config.interval);
+        return x1 + dp;
+    }
+
+    function bodyScroll(v, e) {                                                                                             // Whenever there is a body scroll
+        var n = v.$header.firstChild;                                                                                       // Get the first HEADER item
+        var l = - v.$body.scrollLeft;                                                                                       // Get how much the scroll has moved in X        
+        while (n) { n.style.left = l + "px";n = n.nextSibling;}                                                             // Change left position of HEADER items    
+        var n = v.$categories.firstChild;                                                                                   // Get the first CATEGORY item
+        var l = -v.$body.scrollTop;                                                                                         // Get how much the scroll has moved in Y
+        while (n) { n.style.top = l + "px";n = n.nextSibling;}                                                              // Change the top position of CATEGoRY items 
+    }
+
+
+    function InitHeader(v) {
+        v.$header.innerHTML = "";                                                                                           // Clear whatever is in the HEADER
+        var d = v.date, j = v.config.number_days;                                                                           // Loop all visible dates
+        while (j > 0) {                                                                                                     // Where still in visible fate
+            var item = $TH(v, d, "scheduler.header.item", $CD(v.$header,"inline-block"));                                   // For each day create an inline Header Item
+            item.style.position = "relative";                                                                               // And relative positioning
+            InitDay(v, item, d);                                                                                            // Init DAY panel
+            d = $T.addDays(d, 1);                                                                                           // And move forward
+            j--;
+        }
+    }
 
     function InitDay(v, item, date) {
-        var day = theme(v, date, "scheduler.header.day", $CD(item));                                                        // For each Header Item create a DIV for the date
-        var times = theme(v, date, "scheduler.header.times", $CD(item));                                                    // And a DIV for the times
+        var day = $TH(v, date, "scheduler.header.day", $CD(item));                                                          // For each Header Item create a DIV for the date
+        var times = $TH(v, date, "scheduler.header.times", $CD(item));                                                      // And a DIV for the times
         times.style.whiteSpace = "nowrap";                                                                                  // Which will expand horizontally
         var tinfo = getTimeInfo(v.config, date);                                                                            // Get time info for this day
         var i1 = tinfo.start;                                                                                               // Starting time
-        for (var i = 0; i < tinfo.steps; i++) {                                                                             // Loop all the steps
+        for (var i = 0; i < tinfo.steps; i++) {                                                                             // Loop all the steps    
             var tick = { index: i, start: i1, end: $T.addMilliSeconds(i1, tinfo.offsetMs) };                                // For each step, add it to the array of steps
-            tick.$body = theme(v, tick, "scheduler.header.tick", $CD(times));                                               // Create a DIV for the ticket
-            tick.$body.style.display= "inline-block";                                                                       // Time display is inline
-            v.ticker.push(tick);                                                                                            // For each step, add it to the array of steps
+            tick.$body = $TH(v, tick, "scheduler.header.tick", $CD(times));                                                 // Create a DIV for the ticket
+            tick.$body.style.display = "inline-block";                                                                      // Time display is inline        
+            v.tickers.push(tick);                                                                                            // For each step, add it to the array of steps
             i1 = tick.end;                                                                                                  // currentTime = currentTime + TickInterval
         }
     }
 
 
-    function InitHeader(v) {
+    viewFactory.create = function (host, config) {                                                                          // This function creates a the SCHEDULER view
+        if (!config) config = this.config;                                                                                  // If no config received use SELF config
+        var view = { owner: host, config: config, categories:{} , events:[]};                                               // This is the view object which holds everything related to the view
 
-        v.$title = $D.size($D.position(theme(v, v, "scheduler.title", $CD(v.owner)),0,0),100);                              // This is the title
-        v.$header = $D.position(theme(v, v, "scheduler.header", $CD(v.owner)),100,0,0,null);                                // This is the header
-        v.$header.style.overflowX = "hidden";
-        v.$header.style.whiteSpace = "nowrap";                                                                                 // Which will expand horizontally
+        view.date = new Date();                                                                                             // This is the starting date                              
+        view.tickers = [];                                                                                                  // This is the list tickers
+        view.addCategory = addCategory;                                                                                     // Function to ADD a category
+        view.addData = addData;                                                                                             // Function to ADD a data set & a category
+        view.resize = function () { ResizeView(this); };                                                                    // Resize function
+        view.$title = $D.size($D.position($TH(view, view, "scheduler.title", $CD(host)), 0, 0), 100);                       // This is the title
+        view.$header = $D.position($TH(view, view, "scheduler.header", $CD(host)), 100, 0, 0, null);                        // This is the header
+        view.$header.style.overflowX = "hidden";                                                                            // Hide header overflow
+        view.$header.style.whiteSpace = "nowrap";                                                                           // Which will expand horizontally
+        InitHeader(view);                                                                                                   // Init header
 
-        var d = v.date, j = v.config.number_days;                                                                            // Loop all visible dates
-        while (j > 0) {
-            var item = theme(v, d, "scheduler.header.item", $CD(v.$header));                                                    // For each day create a Header Item
-            item.style.display = "inline-block";
-            item.style.position = "relative";
-            InitDay(v, item, d);
-            d = $T.addDays(d, 1);
-            j--;
-        }
-    }
-
-
-    function setCategories(f) {
-        this.categories = {};
-        for (var i = 0; i < this.scheduler.data.length; i++) {
-            var c = (f ? f(this.scheduler.data[i]) : "default");
-            c = c || "default";
-            if (!this.categories[c]) this.categories[c] = [];
-            this.categories[c].push(this.scheduler.data[i]);
-        }
-        InitDisplay(this);
-    }
-
-
-    function InitEvents(view, cd, where) {
-        for (var i = 0; i < cd.items.length; i++) {
-            var w = theme(view,cd.items[i],"scheduler.event",$CD(where));
-            $D.position(w,i*100);
-            view.events.push({ $body: w, item: cd.items[i] });
-        }
-    }
-
-
-
-    function InitDisplay(v) {
-        v.$categories.innerHTML = "";                                                                                       // Remove categories display
-        v.events = [];
-        var c = $L.p2array(v.categories, true);                                                                             // Get all categories sorted by name
-        for (var i = 0; i < c.length; i++) {                                                                                // Loop all categories
-            var cd = { index: i, value: c[i] , items: v.categories[c[i]] };                                                 // This is a category object
-            var t = theme(v, cd, "scheduler.category.title", $CD(v.$categories));                                           // Create a category title
-            t.style.position = "relative";
-            var d = theme(v, cd, "scheduler.body.category", $CD(v.$body));                                                  // Create a category view
-
-            d.style.whiteSpace = "nowrap";
-            for (var j = 0; j < v.ticker.length; j++) {
-                var cell = theme(v, v.ticker[j], "scheduler.body.cell", $CD(d));                                            // Create a DIV for the ticket
-                cell.style.display = "inline-block";                                                                        // The cell displays online
-            }
-            InitEvents(v,cd, d);
-        }
-        ResizeView(v);
-    }
-
-    function ResizeView(v) {
-        var topHeight = $D.setSameHeight(v.$title, v.$header);
-        var leftWidth = $D.setSameWidth(v.$title, v.$categories);
-        $D.position(v.$body, leftWidth, topHeight);
-        $D.position(v.$header, leftWidth);
-
-        var used = leftWidth + $D.getNonClientWidth(v.$header);
-        n = v.$header.firstChild;
-        while (n) {
-            used = used + $D.getNonClientWidth(n) + $D.getNonClientWidth(n.firstChild.nextSibling);
-            n = n.nextSibling;
-        }
-        aw = $D.getWidthInner(v.owner) - used;                                                                          // Available width for ticks
-        var tw = (aw / v.ticker.length);                                                                                // This is calculated tick width
-        if (tw < v.config.min_tick_width) {                                                                             // If this width is less than tick width
-            tw = v.config.min_tick_width;                                                                               // Set as minimum
-        }
-        $D.loop(v.ticker, function (k) { $D.setWidthOuter(k.$body, tw); });                                             // Set width for ticks !!!
-        v.ticker.tickWidth = tw;                                                                                        // Keep current WIDTH
-        $D.loop(v.$categories, function (node, data, k) {                                                               // Lets loop all the categories
-            var bv = data.$body.childNodes[k];                                                                          // Get the view for a category
-            var t0 = $D.setSameHeight(node, bv);                                                                        // Make categoryTitle & categoryView same height
-            var h = $D.getHeightInner(bv);                                                                              // This is available categoryView height
-            for (var j = 0; j < v.ticker.length; j++) {
-                var cell = bv.childNodes[j];
-                $D.setHeightOuter(cell, h);
-                $D.setWidthOuter(cell, tw);
-            }
-            $D.setWidthInner(bv, v.ticker.length*tw);                                                                                  // Fix categoryView width
-        }, v);
-        // Now lets resize the events horizontally
-        for (var i = 0; i < v.events.length; i++) {
-            var $w = v.events[i].$body;
-            var x1 = GetXPosition(v, v.events[i].item.start);
-            var x2 = GetXPosition(v, v.events[i].item.end);
-            if (x1 && x2) {
-                $w.style.left = x1 + "px";
-                $w.style.width = ((x2 - x1)<15 ? 15 : x2-x1) + "px";
-            } else $w.style.display = "none";
-        }
-    }
-
-
-    function GetXPosition(v, time) {
-        var tick = v.ticker.getTickAt(time);
-        if (!tick) return null;
-        var x1 = tick.$body.offsetLeft + tick.$body.parentNode.offsetLeft + tick.$body.parentNode.parentNode.offsetLeft;
-        var dm = time - tick.start;                                                                                       // TimeSpan between received time and tick start
-        dm = Math.round(((dm % 86400000) % 3600000) / 60000);                                                             // Convert time span to minutes
-        var dp = Math.round(dm * v.ticker.tickWidth / v.config.interval);
-        return x1 + dp;
-    }
-
-    function PositionXEvent(v, event) {
-
-        if (!x1 || !x2) {
-            return;
-        }
-
-        var y = $w.parentNode.offsetTop;
-        $w.style.top = y + "px";
-
-    }
-
-    function bodyScroll(v, e) {
-        var n = v.$header.firstChild;
-        var l = - v.$body.scrollLeft;
-        while (n) {
-            n.style.left = l + "px";
-            n = n.nextSibling;
-        }
-
-        var n = v.$categories.firstChild;
-        var l = -v.$body.scrollTop;
-        while (n) {
-            n.style.top = l + "px";
-            n = n.nextSibling;
-        }
-    }
-
-    viewFactory.create = function (sch, host,config) {                                                                      // This function creates a DAY view
-        if (!config) config = this.config;                                                                                  // If no config received use default config
-        var view = { scheduler: sch, owner: host, config: config, categories:{} , events:[]};                                           // This is the view object which holds everything related to the view
-
-        view.date = new Date();                                                                                             // This is the starting date
-        view.ticker = [];
-        view.ticker.getTickAt = function (time) {
-            //console.log("Getting tick for time " + time);
-            for (var i = 0; i < this.length; i++) {
-                //console.log("    "+i + " start: " + this[i].start);
-                if (this[i].start <= time && time < this[i].end) return this[i];
-            }
-            return null;
-        }
-
-
-        view.setCategories = setCategories;
-        view.resize = function () { ResizeView(this); };
-
-        InitHeader(view);
-        view.$categories = theme(view, view, "scheduler.category", $CD(host));
-        view.$categories.style.overflow = "hidden";
-        $D.position(view.$categories, 0, $D.getHeightOuter(view.$header), null, 0);
-        view.$categories.style.minWidth = "50px";
-
-        view.$body = theme(view, view, "scheduler.body", $CD(host));
-        $D.position(view.$body, 50, $D.getHeightOuter(view.$header), 0, 0);
-        view.$body.style.overflow = "auto";
-        view.$body.addEventListener("scroll", function (e, t) { bodyScroll(view, e, t); });
-
-
+        view.$categories = $TH(view, view, "scheduler.category", $CD(host));                                                // Set the CATEGORIES display
+        view.$categories.style.overflow = "hidden";                                                                         // With overflow = hidden
+        $D.position(view.$categories, 0, $D.getHeightOuter(view.$header), null, 0);                                         // Set its position    
+        view.$categories.style.minWidth = "50px";                                                                           // And BandWidth
+        view.$body = $TH(view, view, "scheduler.body", $CD(host));                                                          // This is BODY
+        $D.position(view.$body, 50, $D.getHeightOuter(view.$header), 0, 0);                                                 // And this is position    
+        view.$body.style.overflow = "auto";                                                                                 // Body overflow is auto
+        view.$body.addEventListener("scroll", function (e, t) { bodyScroll(view, e, t); });                                 // On BODY scroll
         ResizeView(view);                                                                                                   // resize everything so it gets measured
-
-        return view;
+        $D.addResizeHandler(host, view, ResizeView);
+        view.update = function () {
+            ResizeView(this);
+        }
+        return view;                                                                                                        // Return view
     }
-    window.$SejScheduler.registerView(viewFactory);                                                                         // Register this view
+    window.$sej.register("scheduler", viewFactory);
 })();
